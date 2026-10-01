@@ -79,17 +79,17 @@ class DualSenseBtOutput(
 
 	private fun update(change: () -> Unit)
 	{
-		val report: ByteArray
 		synchronized(lock) {
 			if(closed)
 				return
 			change()
-			report = nextReport()
+			// hand over under the lock, so reports leave in the order they were built
+			val report = nextReport()
+			if(coalescer != null)
+				coalescer.offer(report)
+			else
+				sendNow(report)
 		}
-		if(coalescer != null)
-			coalescer.offer(report)
-		else
-			sendNow(report)
 	}
 
 	private fun nextReport(): ByteArray

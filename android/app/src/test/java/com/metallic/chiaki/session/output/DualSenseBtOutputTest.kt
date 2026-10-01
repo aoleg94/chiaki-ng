@@ -5,6 +5,9 @@ package com.metallic.chiaki.session.output
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class FakeTransport(var succeed: Boolean = true): RawReportTransport
 {
@@ -106,6 +109,41 @@ class DualSenseBtOutputTest
 		val count = transport.reports.size
 		output.rumble(1U, 1U)
 		assertEquals(count, transport.reports.size)
+	}
+
+	@Test
+	fun concurrentUpdates_reachTransportInBuildOrder()
+	{
+		// the first send (rumble, old triggers) stalls in the transport while another
+		// thread sets new triggers; the stale report must not be delivered last
+		val firstInSend = CountDownLatch(1)
+		val releaseFirst = CountDownLatch(1)
+		val delivered = mutableListOf<ByteArray>()
+		val slow = object: RawReportTransport {
+			private var first = true
+			override fun send(report: ByteArray): Boolean
+			{
+				val isFirst = synchronized(this) { first.also { first = false } }
+				if(isFirst)
+				{
+					firstInSend.countDown()
+					releaseFirst.await(2, TimeUnit.SECONDS)
+				}
+				synchronized(delivered) { delivered.add(report) }
+				return true
+			}
+			override fun close() {}
+		}
+		val out = DualSenseBtOutput(slow, {}, coalesce = false)
+		val t1 = thread { out.rumble(1U, 1U) }
+		firstInSend.await(2, TimeUnit.SECONDS)
+		val t2 = thread { out.triggerEffects(0x21U, ByteArray(10) { 3 }, 0x26U, ByteArray(10) { 4 }) }
+		t2.join(200)
+		releaseFirst.countDown()
+		t1.join()
+		t2.join()
+		assertEquals(0x26, u(delivered.last()[13])) // right trigger type
+		assertEquals(0x21, u(delivered.last()[24])) // left trigger type
 	}
 
 	@Test
