@@ -322,6 +322,7 @@ object ConnectedEvent: Event()
 data class LoginPinRequestEvent(val pinIncorrect: Boolean): Event()
 data class QuitEvent(val reason: QuitReason, val reasonString: String?): Event()
 data class RumbleEvent(val left: UByte, val right: UByte): Event()
+object MotionResetEvent: Event()
 
 class CreateError(val errorCode: ErrorCode): Exception("Failed to create a native object: $errorCode")
 
@@ -382,6 +383,11 @@ class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
 		event(RumbleEvent(left.toUByte(), right.toUByte()))
 	}
 
+	private fun eventMotionReset()
+	{
+		event(MotionResetEvent)
+	}
+
 	fun setSurface(surface: Surface?)
 	{
 		ChiakiNative.sessionSetSurface(nativePtr, surface)
@@ -406,6 +412,23 @@ class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
 class MotionTracker
 {
 	private var nativePtr = ChiakiNative.motionTrackerCreate()
+	companion object
+	{
+		fun neutral(state: ControllerState)
+		{
+			state.gyroX = 0.0f
+			state.gyroY = 0.0f
+			state.gyroZ = 0.0f
+			state.accelX = 0.0f
+			state.accelY = 1.0f
+			state.accelZ = 0.0f
+			state.orientX = 0.0f
+			state.orientY = 0.0f
+			state.orientZ = 0.0f
+			state.orientW = 1.0f
+		}
+	}
+
 	private val values = FloatArray(10).also { it[4] = 1.0f; it[9] = 1.0f }
 
 	fun updateAccel(x: Float, y: Float, z: Float, timestampUs: Int)
