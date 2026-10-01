@@ -58,7 +58,11 @@ class OutputRouter(
 	{
 		if(!rumbleEnabled || !intensity.rumbleOn)
 			return
-		current()?.rumble(left, right)
+		val out = current() ?: return
+		if(out.appliesIntensity)
+			out.rumble(left, right)
+		else
+			out.rumble(intensity.scale(left), intensity.scale(right))
 	}
 
 	@Synchronized

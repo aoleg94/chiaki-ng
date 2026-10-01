@@ -96,6 +96,22 @@ class OutputRouterTest
 	}
 
 	@Test
+	fun hapticRumbleScaledByIntensityUnlessOutputAppliesIt()
+	{
+		val soft = router()
+		soft.setActiveController(1)
+		soft.onHapticIntensity(DualSenseIntensity.WEAK)
+		soft.onHapticRumble(200U, 100U)
+		assertEquals("rumble 66 33", created.last().calls.last())
+
+		val raw = router(appliesIntensity = true)
+		raw.setActiveController(1)
+		raw.onHapticIntensity(DualSenseIntensity.WEAK)
+		raw.onHapticRumble(200U, 100U)
+		assertEquals("rumble 200 100", created.last().calls.last())
+	}
+
+	@Test
 	fun intensityOff_blocksRumbleAndTriggers()
 	{
 		val r = router()
