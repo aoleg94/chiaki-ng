@@ -89,7 +89,7 @@
     <string name="preferences_swap_cross_moon_title">Swap Cross/Moon and Box/Pyramid Buttons</string>
     <string name="preferences_swap_cross_moon_summary">Swap face buttons if default mapping is incorrect (e.g. for 8BitDo controllers)</string>
     <string name="preferences_rumble_enabled_title">Rumble</string>
-    <string name="preferences_rumble_enabled_summary">Use phone vibration motor for rumble</string>
+    <string name="preferences_rumble_enabled_summary">Rumble on the controller, or the phone if the controller cannot rumble</string>
     <string name="preferences_motion_source_title">Motion</string>
     <string name="preferences_motion_source_title_auto">Auto (controller, else phone)</string>
     <string name="preferences_motion_source_title_controller">Controller only</string>

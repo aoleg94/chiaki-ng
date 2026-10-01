@@ -14,6 +14,7 @@ import com.metallic.chiaki.lib.ControllerState
 class StreamInput(val context: Context, val preferences: Preferences)
 {
 	var controllerStateChangedCallback: ((ControllerState) -> Unit)? = null
+	var activeControllerChangedCallback: ((Int?) -> Unit)? = null
 
 	val controllerState: ControllerState get()
 	{
@@ -178,9 +179,17 @@ class StreamInput(val context: Context, val preferences: Preferences)
 		activeControllerMaybeChanged()
 	}
 
+	private var lastNotifiedControllerId: Int? = null
+
 	private fun activeControllerMaybeChanged()
 	{
 		controllerMotion.activeControllerId = lastInputDeviceId
+		val id = activeControllerId
+		if(id != lastNotifiedControllerId)
+		{
+			lastNotifiedControllerId = id
+			activeControllerChangedCallback?.invoke(id)
+		}
 	}
 
 	private fun controllerStateUpdated()
