@@ -48,6 +48,7 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 		preferences.codecKey -> preferences.codec.value
 		preferences.motionSourceKey -> preferences.motionSource.value
 		preferences.dualSenseModeKey -> preferences.dualSenseMode.value
+		preferences.hapticsRumbleLevelKey -> preferences.hapticsRumbleLevel.value
 		else -> defValue
 	}
 
@@ -75,6 +76,11 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 			{
 				val mode = Preferences.DualSenseMode.values().firstOrNull { it.value == value } ?: return
 				preferences.dualSenseMode = mode
+			}
+			preferences.hapticsRumbleLevelKey ->
+			{
+				val level = Preferences.HapticsRumbleLevel.values().firstOrNull { it.value == value } ?: return
+				preferences.hapticsRumbleLevel = level
 			}
 			preferences.codecKey ->
 			{
@@ -142,6 +148,11 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 		preferenceScreen.findPreference<ListPreference>(getString(R.string.preferences_dualsense_mode_key))?.let {
 			it.entryValues = Preferences.dualSenseModeAll.map { mode -> mode.value }.toTypedArray()
 			it.entries = Preferences.dualSenseModeAll.map { mode -> getString(mode.title) }.toTypedArray()
+		}
+
+		preferenceScreen.findPreference<ListPreference>(getString(R.string.preferences_haptics_rumble_key))?.let {
+			it.entryValues = Preferences.hapticsRumbleLevelAll.map { level -> level.value }.toTypedArray()
+			it.entries = Preferences.hapticsRumbleLevelAll.map { level -> getString(level.title) }.toTypedArray()
 		}
 
 		val registeredHostsPreference = preferenceScreen.findPreference<Preference>("registered_hosts")

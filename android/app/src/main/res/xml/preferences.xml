@@ -26,6 +26,12 @@
             app:icon="@drawable/ic_rumble" />
 
         <ListPreference
+            app:key="@string/preferences_haptics_rumble_key"
+            app:title="@string/preferences_haptics_rumble_title"
+            app:summary="%s"
+            app:icon="@drawable/ic_rumble" />
+
+        <ListPreference
             app:key="@string/preferences_motion_source_key"
             app:title="@string/preferences_motion_source_title"
             app:summary="%s"

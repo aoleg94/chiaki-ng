@@ -54,6 +54,16 @@ class Preferences(context: Context)
 		OFF("off", R.string.preferences_dualsense_mode_title_off)
 	}
 
+	enum class HapticsRumbleLevel(val value: String, @StringRes val title: Int)
+	{
+		OFF("off", R.string.preferences_haptics_rumble_title_off),
+		VERY_WEAK("very_weak", R.string.preferences_haptics_rumble_title_very_weak),
+		WEAK("weak", R.string.preferences_haptics_rumble_title_weak),
+		NORMAL("normal", R.string.preferences_haptics_rumble_title_normal),
+		STRONG("strong", R.string.preferences_haptics_rumble_title_strong),
+		VERY_STRONG("very_strong", R.string.preferences_haptics_rumble_title_very_strong)
+	}
+
 	companion object
 	{
 		val resolutionDefault = Resolution.RES_720P
@@ -66,6 +76,8 @@ class Preferences(context: Context)
 		val motionSourceAll = MotionSource.values()
 		val dualSenseModeDefault = DualSenseMode.AUTO
 		val dualSenseModeAll = DualSenseMode.values()
+		val hapticsRumbleLevelDefault = HapticsRumbleLevel.NORMAL
+		val hapticsRumbleLevelAll = HapticsRumbleLevel.values()
 
 		fun motionSourceFromStored(stored: String?, legacyMotionEnabled: Boolean): MotionSource
 		{
@@ -120,6 +132,13 @@ class Preferences(context: Context)
 			DualSenseMode.values().firstOrNull { it.value == value }
 		} ?: dualSenseModeDefault
 		set(value) { sharedPreferences.edit().putString(dualSenseModeKey, value.value).apply() }
+
+	val hapticsRumbleLevelKey get() = resources.getString(R.string.preferences_haptics_rumble_key)
+	var hapticsRumbleLevel
+		get() = sharedPreferences.getString(hapticsRumbleLevelKey, hapticsRumbleLevelDefault.value)?.let { value ->
+			HapticsRumbleLevel.values().firstOrNull { it.value == value }
+		} ?: hapticsRumbleLevelDefault
+		set(value) { sharedPreferences.edit().putString(hapticsRumbleLevelKey, value.value).apply() }
 
 	val buttonHapticEnabledKey get() = resources.getString(R.string.preferences_button_haptic_enabled_key)
 	var buttonHapticEnabled

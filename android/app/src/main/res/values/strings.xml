@@ -99,6 +99,13 @@
     <string name="preferences_dualsense_mode_title_auto">Auto (when a DualSense is connected)</string>
     <string name="preferences_dualsense_mode_title_on">On</string>
     <string name="preferences_dualsense_mode_title_off">Off</string>
+    <string name="preferences_haptics_rumble_title">PS5 haptics as rumble</string>
+    <string name="preferences_haptics_rumble_title_off">Off</string>
+    <string name="preferences_haptics_rumble_title_very_weak">Very weak</string>
+    <string name="preferences_haptics_rumble_title_weak">Weak</string>
+    <string name="preferences_haptics_rumble_title_normal">Normal</string>
+    <string name="preferences_haptics_rumble_title_strong">Strong</string>
+    <string name="preferences_haptics_rumble_title_very_strong">Very strong</string>
     <string name="preferences_button_haptic_enabled_title">Touch Haptics</string>
     <string name="preferences_button_haptic_enabled_summary">Use phone vibration motor for short haptic feedback on button touches</string>
     <string name="alert_message_delete_registered_host">Are you sure you want to delete the registered console %s with ID %s?</string>
@@ -121,6 +128,7 @@
     <string name="preferences_motion_enabled_key">motion_enabled</string>
     <string name="preferences_motion_source_key">motion_source</string>
     <string name="preferences_dualsense_mode_key">dualsense_mode</string>
+    <string name="preferences_haptics_rumble_key">haptics_rumble</string>
     <string name="preferences_button_haptic_enabled_key">button_haptic_enabled</string>
     <string name="preferences_log_verbose_key">log_verbose</string>
     <string name="preferences_import_settings_key">import_settings</string>
