@@ -31,6 +31,12 @@
             app:summary="%s"
             app:icon="@drawable/ic_motion" />
 
+        <ListPreference
+            app:key="@string/preferences_dualsense_mode_key"
+            app:title="@string/preferences_dualsense_mode_title"
+            app:summary="%s"
+            app:icon="@drawable/ic_gamepad" />
+
         <SwitchPreference
             app:key="@string/preferences_button_haptic_enabled_key"
             app:title="@string/preferences_button_haptic_enabled_title"

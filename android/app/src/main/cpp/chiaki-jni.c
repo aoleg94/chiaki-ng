@@ -235,6 +235,8 @@ JNIEXPORT void JNICALL JNI_FCN(sessionCreate)(JNIEnv *env, jobject obj, jobject 
 
 	ChiakiConnectInfo connect_info = { 0 };
 	connect_info.ps5 = ps5;
+	connect_info.enable_dualsense = E->GetBooleanField(env, connect_info_obj, E->GetFieldID(env, connect_info_class, "enableDualSense", "Z"));
+	CHIAKI_LOGI(log, "DualSense features %s", connect_info.enable_dualsense ? "enabled" : "disabled");
 
 	const char *str_borrow = E->GetStringUTFChars(env, host_string, NULL);
 	connect_info.host = host_str = strdup(str_borrow);

@@ -47,6 +47,13 @@ class Preferences(context: Context)
 		OFF("off", R.string.preferences_motion_source_title_off)
 	}
 
+	enum class DualSenseMode(val value: String, @StringRes val title: Int)
+	{
+		AUTO("auto", R.string.preferences_dualsense_mode_title_auto),
+		ON("on", R.string.preferences_dualsense_mode_title_on),
+		OFF("off", R.string.preferences_dualsense_mode_title_off)
+	}
+
 	companion object
 	{
 		val resolutionDefault = Resolution.RES_720P
@@ -57,6 +64,8 @@ class Preferences(context: Context)
 		val codecAll = Codec.values()
 		val motionSourceDefault = MotionSource.AUTO
 		val motionSourceAll = MotionSource.values()
+		val dualSenseModeDefault = DualSenseMode.AUTO
+		val dualSenseModeAll = DualSenseMode.values()
 
 		fun motionSourceFromStored(stored: String?, legacyMotionEnabled: Boolean): MotionSource
 		{
@@ -104,6 +113,13 @@ class Preferences(context: Context)
 			sharedPreferences.getString(motionSourceKey, null),
 			sharedPreferences.getBoolean(motionEnabledKey, true))
 		set(value) { sharedPreferences.edit().putString(motionSourceKey, value.value).apply() }
+
+	val dualSenseModeKey get() = resources.getString(R.string.preferences_dualsense_mode_key)
+	var dualSenseMode
+		get() = sharedPreferences.getString(dualSenseModeKey, dualSenseModeDefault.value)?.let { value ->
+			DualSenseMode.values().firstOrNull { it.value == value }
+		} ?: dualSenseModeDefault
+		set(value) { sharedPreferences.edit().putString(dualSenseModeKey, value.value).apply() }
 
 	val buttonHapticEnabledKey get() = resources.getString(R.string.preferences_button_haptic_enabled_key)
 	var buttonHapticEnabled

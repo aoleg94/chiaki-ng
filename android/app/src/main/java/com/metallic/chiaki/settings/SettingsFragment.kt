@@ -47,6 +47,7 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 		preferences.bitrateKey -> preferences.bitrate?.toString() ?: ""
 		preferences.codecKey -> preferences.codec.value
 		preferences.motionSourceKey -> preferences.motionSource.value
+		preferences.dualSenseModeKey -> preferences.dualSenseMode.value
 		else -> defValue
 	}
 
@@ -69,6 +70,11 @@ class DataStore(val preferences: Preferences): PreferenceDataStore()
 			{
 				val source = Preferences.MotionSource.values().firstOrNull { it.value == value } ?: return
 				preferences.motionSource = source
+			}
+			preferences.dualSenseModeKey ->
+			{
+				val mode = Preferences.DualSenseMode.values().firstOrNull { it.value == value } ?: return
+				preferences.dualSenseMode = mode
 			}
 			preferences.codecKey ->
 			{
@@ -131,6 +137,11 @@ class SettingsFragment: PreferenceFragmentCompat(), TitleFragment
 		preferenceScreen.findPreference<ListPreference>(getString(R.string.preferences_motion_source_key))?.let {
 			it.entryValues = Preferences.motionSourceAll.map { source -> source.value }.toTypedArray()
 			it.entries = Preferences.motionSourceAll.map { source -> getString(source.title) }.toTypedArray()
+		}
+
+		preferenceScreen.findPreference<ListPreference>(getString(R.string.preferences_dualsense_mode_key))?.let {
+			it.entryValues = Preferences.dualSenseModeAll.map { mode -> mode.value }.toTypedArray()
+			it.entries = Preferences.dualSenseModeAll.map { mode -> getString(mode.title) }.toTypedArray()
 		}
 
 		val registeredHostsPreference = preferenceScreen.findPreference<Preference>("registered_hosts")
