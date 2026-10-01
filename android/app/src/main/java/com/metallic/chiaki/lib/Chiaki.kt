@@ -325,6 +325,26 @@ data class QuitEvent(val reason: QuitReason, val reasonString: String?): Event()
 data class RumbleEvent(val left: UByte, val right: UByte): Event()
 object MotionResetEvent: Event()
 
+enum class DualSenseIntensity(val value: Int)
+{
+	OFF(0),
+	STRONG(1),
+	MEDIUM(2),
+	WEAK(3);
+
+	companion object
+	{
+		fun fromValue(value: Int) = values().firstOrNull { it.value == value } ?: STRONG
+	}
+}
+
+class TriggerEffectsEvent(val typeLeft: UByte, val left: ByteArray, val typeRight: UByte, val right: ByteArray): Event()
+data class LedColorEvent(val r: UByte, val g: UByte, val b: UByte): Event()
+data class PlayerIndexEvent(val index: Int): Event()
+data class HapticIntensityEvent(val intensity: DualSenseIntensity): Event()
+data class TriggerIntensityEvent(val intensity: DualSenseIntensity): Event()
+data class HapticStrengthEvent(val left: Int, val right: Int): Event()
+
 class CreateError(val errorCode: ErrorCode): Exception("Failed to create a native object: $errorCode")
 
 class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
@@ -387,6 +407,36 @@ class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
 	private fun eventMotionReset()
 	{
 		event(MotionResetEvent)
+	}
+
+	private fun eventTriggerEffects(typeLeft: Int, left: ByteArray, typeRight: Int, right: ByteArray)
+	{
+		event(TriggerEffectsEvent(typeLeft.toUByte(), left, typeRight.toUByte(), right))
+	}
+
+	private fun eventLedColor(r: Int, g: Int, b: Int)
+	{
+		event(LedColorEvent(r.toUByte(), g.toUByte(), b.toUByte()))
+	}
+
+	private fun eventPlayerIndex(index: Int)
+	{
+		event(PlayerIndexEvent(index))
+	}
+
+	private fun eventHapticIntensity(intensity: Int)
+	{
+		event(HapticIntensityEvent(DualSenseIntensity.fromValue(intensity)))
+	}
+
+	private fun eventTriggerIntensity(intensity: Int)
+	{
+		event(TriggerIntensityEvent(DualSenseIntensity.fromValue(intensity)))
+	}
+
+	private fun eventHapticStrength(left: Int, right: Int)
+	{
+		event(HapticStrengthEvent(left, right))
 	}
 
 	fun setSurface(surface: Surface?)

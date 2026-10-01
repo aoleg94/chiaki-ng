@@ -91,6 +91,8 @@ class StreamSession(val connectInfo: ConnectInfo, val logManager: LogManager, va
 			)
 			is RumbleEvent -> _rumbleState.postValue(event)
 			is MotionResetEvent -> input.onMotionReset()
+			is TriggerEffectsEvent, is LedColorEvent, is PlayerIndexEvent,
+			is HapticIntensityEvent, is TriggerIntensityEvent, is HapticStrengthEvent -> {}
 		}
 	}
 
