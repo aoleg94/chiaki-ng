@@ -44,6 +44,12 @@
             app:icon="@drawable/ic_gamepad" />
 
         <SwitchPreference
+            app:key="@string/preferences_adaptive_triggers_key"
+            app:title="@string/preferences_adaptive_triggers_title"
+            app:summary="@string/preferences_adaptive_triggers_summary"
+            app:icon="@drawable/ic_gamepad" />
+
+        <SwitchPreference
             app:key="@string/preferences_button_haptic_enabled_key"
             app:title="@string/preferences_button_haptic_enabled_title"
             app:summary="@string/preferences_button_haptic_enabled_summary"

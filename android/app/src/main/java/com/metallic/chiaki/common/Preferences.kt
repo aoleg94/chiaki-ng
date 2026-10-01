@@ -133,6 +133,11 @@ class Preferences(context: Context)
 		} ?: dualSenseModeDefault
 		set(value) { sharedPreferences.edit().putString(dualSenseModeKey, value.value).apply() }
 
+	val adaptiveTriggersKey get() = resources.getString(R.string.preferences_adaptive_triggers_key)
+	var adaptiveTriggers
+		get() = sharedPreferences.getBoolean(adaptiveTriggersKey, false)
+		set(value) { sharedPreferences.edit().putBoolean(adaptiveTriggersKey, value).apply() }
+
 	val hapticsRumbleLevelKey get() = resources.getString(R.string.preferences_haptics_rumble_key)
 	var hapticsRumbleLevel
 		get() = sharedPreferences.getString(hapticsRumbleLevelKey, hapticsRumbleLevelDefault.value)?.let { value ->

@@ -14,6 +14,7 @@ import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.lib.*
 import com.metallic.chiaki.session.output.OutputBackends
 import com.metallic.chiaki.session.output.OutputRouter
+import com.metallic.chiaki.session.output.TriggerOutputBackends
 
 sealed class StreamState
 object StreamStateIdle: StreamState()
@@ -59,6 +60,9 @@ class StreamSession(
 		}
 		input.activeControllerChangedCallback = {
 			router?.setActiveController(it)
+		}
+		(backends as? TriggerOutputBackends)?.onBackendChanged = {
+			router?.rebuild()
 		}
 	}
 

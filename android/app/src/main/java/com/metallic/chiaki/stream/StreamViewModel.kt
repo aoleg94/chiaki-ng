@@ -10,7 +10,7 @@ import com.metallic.chiaki.session.StreamSession
 import com.metallic.chiaki.common.Preferences
 import com.metallic.chiaki.lib.*
 import com.metallic.chiaki.session.StreamInput
-import com.metallic.chiaki.session.output.OutputBackends
+import com.metallic.chiaki.session.output.TriggerOutputBackends
 
 class StreamViewModel(val application: Application, val connectInfo: ConnectInfo): ViewModel()
 {
@@ -18,7 +18,7 @@ class StreamViewModel(val application: Application, val connectInfo: ConnectInfo
 	val logManager = LogManager(application)
 
 	private var _session: StreamSession? = null
-	private val backends = OutputBackends(application)
+	private val backends = TriggerOutputBackends(application, preferences)
 	val input = StreamInput(application, preferences)
 	val session = StreamSession(connectInfo, logManager, preferences.logVerbose, input,
 		preferences.rumbleEnabled, preferences.hapticsRumbleLevel, backends)
