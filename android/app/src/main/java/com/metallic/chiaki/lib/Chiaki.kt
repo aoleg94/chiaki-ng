@@ -93,6 +93,11 @@ private class ChiakiNative
 		@JvmStatic external fun sessionSetSurface(ptr: Long, surface: Surface?)
 		@JvmStatic external fun sessionSetControllerState(ptr: Long, controllerState: ControllerState)
 		@JvmStatic external fun sessionSetLoginPin(ptr: Long, pin: String)
+		@JvmStatic external fun motionTrackerCreate(): Long
+		@JvmStatic external fun motionTrackerFree(ptr: Long)
+		@JvmStatic external fun motionTrackerUpdateAccel(ptr: Long, x: Float, y: Float, z: Float, timestampUs: Int, out: FloatArray)
+		@JvmStatic external fun motionTrackerUpdateGyro(ptr: Long, x: Float, y: Float, z: Float, timestampUs: Int, out: FloatArray)
+		@JvmStatic external fun motionTrackerReset(ptr: Long, out: FloatArray)
 		@JvmStatic external fun discoveryServiceCreate(result: CreateResult, options: DiscoveryServiceOptions, javaService: DiscoveryService)
 		@JvmStatic external fun discoveryServiceFree(ptr: Long)
 		@JvmStatic external fun discoveryServiceWakeup(ptr: Long, host: String, userCredential: Long, ps5: Boolean)
@@ -390,6 +395,57 @@ class Session(connectInfo: ConnectInfo, logFile: String?, logVerbose: Boolean)
 	fun setLoginPin(pin: String)
 	{
 		ChiakiNative.sessionSetLoginPin(nativePtr, pin)
+	}
+}
+
+/**
+ * Orientation tracking for controller motion, using the same
+ * Madgwick filter and accel-zero handling as the desktop client.
+ * Accel in g, gyro in rad/s, timestamps in microseconds (wrapping).
+ */
+class MotionTracker
+{
+	private var nativePtr = ChiakiNative.motionTrackerCreate()
+	private val values = FloatArray(10).also { it[4] = 1.0f; it[9] = 1.0f }
+
+	fun updateAccel(x: Float, y: Float, z: Float, timestampUs: Int)
+	{
+		if(nativePtr != 0L)
+			ChiakiNative.motionTrackerUpdateAccel(nativePtr, x, y, z, timestampUs, values)
+	}
+
+	fun updateGyro(x: Float, y: Float, z: Float, timestampUs: Int)
+	{
+		if(nativePtr != 0L)
+			ChiakiNative.motionTrackerUpdateGyro(nativePtr, x, y, z, timestampUs, values)
+	}
+
+	fun reset()
+	{
+		if(nativePtr != 0L)
+			ChiakiNative.motionTrackerReset(nativePtr, values)
+	}
+
+	fun applyTo(state: ControllerState)
+	{
+		state.gyroX = values[0]
+		state.gyroY = values[1]
+		state.gyroZ = values[2]
+		state.accelX = values[3]
+		state.accelY = values[4]
+		state.accelZ = values[5]
+		state.orientX = values[6]
+		state.orientY = values[7]
+		state.orientZ = values[8]
+		state.orientW = values[9]
+	}
+
+	fun dispose()
+	{
+		if(nativePtr == 0L)
+			return
+		ChiakiNative.motionTrackerFree(nativePtr)
+		nativePtr = 0L
 	}
 }
 
