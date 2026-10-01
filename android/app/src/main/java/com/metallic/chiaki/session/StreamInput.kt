@@ -111,7 +111,7 @@ class StreamInput(val context: Context, val preferences: Preferences)
 
 	fun observe(lifecycleOwner: LifecycleOwner)
 	{
-		if(preferences.motionEnabled)
+		if(preferences.motionSource != Preferences.MotionSource.OFF)
 			lifecycleOwner.lifecycle.addObserver(motionLifecycleObserver)
 	}
 
