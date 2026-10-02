@@ -14,7 +14,7 @@ class DualSenseOutputState
 	var ledR: UByte = 0U
 	var ledG: UByte = 0U
 	var ledB: UByte = 0U
-	var playerLeds = 0
+	var playerLeds = DualSenseReport.playerLedsFor(0) // player 1: the console reports the index only when it changes
 	var intensity: UByte = 0U
 
 	fun setTriggers(typeLeft: UByte, left: ByteArray, typeRight: UByte, right: ByteArray)
