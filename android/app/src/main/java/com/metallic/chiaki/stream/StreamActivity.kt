@@ -72,6 +72,9 @@ class StreamActivity : AppCompatActivity()
 		})[StreamViewModel::class.java]
 
 		viewModel.input.observe(this)
+		lifecycle.addObserver(StreamVisibilityObserver(
+			start = { viewModel.session.resume() },
+			stop = { viewModel.session.pause() }))
 
 		binding = ActivityStreamBinding.inflate(layoutInflater)
 		setContentView(binding.root)
@@ -146,13 +149,6 @@ class StreamActivity : AppCompatActivity()
 	{
 		super.onResume()
 		hideSystemUI()
-		viewModel.session.resume()
-	}
-
-	override fun onPause()
-	{
-		super.onPause()
-		viewModel.session.pause()
 	}
 
 	override fun onDestroy()

@@ -33,6 +33,11 @@ class StreamSession(
 	private val hapticsRumbleLevel: Preferences.HapticsRumbleLevel,
 	private val backends: OutputBackends)
 {
+	companion object
+	{
+		private const val IN_USE_RETRY_DELAY_MS = 1500L
+	}
+
 	var session: Session? = null
 		private set
 
@@ -49,6 +54,9 @@ class StreamSession(
 			tickHandler.postDelayed(this, HapticsRumble.TICK_MS)
 		}
 	}
+
+	private val inUseRetry = RemoteInUseRetry()
+	private val mainHandler = Handler(Looper.getMainLooper())
 
 	private var surfaceTexture: SurfaceTexture? = null
 	private var surface: Surface? = null
@@ -68,6 +76,15 @@ class StreamSession(
 
 	fun shutdown()
 	{
+		if(session != null)
+			inUseRetry.sessionStopped()
+		disposeSession()
+		_state.value = StreamStateIdle
+		//surfaceTexture?.release()
+	}
+
+	private fun disposeSession()
+	{
 		session?.stop()
 		session?.dispose()
 		session = null
@@ -76,8 +93,6 @@ class StreamSession(
 		hapticsRumble = null
 		router?.close()
 		router = null
-		_state.value = StreamStateIdle
-		//surfaceTexture?.release()
 	}
 
 	fun pause()
@@ -98,7 +113,7 @@ class StreamSession(
 			tickHandler.post(hapticsTick)
 			val session = Session(connectInfo, logManager.createNewFile().file.absolutePath, logVerbose)
 			_state.value = StreamStateConnecting
-			session.eventCallback = this::eventCallback
+			session.eventCallback = { eventCallback(session, it) }
 			session.start()
 			val surface = surface
 			if(surface != null)
@@ -111,17 +126,21 @@ class StreamSession(
 		}
 	}
 
-	private fun eventCallback(event: Event)
+	private fun eventCallback(session: Session, event: Event)
 	{
 		when(event)
 		{
 			is ConnectedEvent -> _state.postValue(StreamStateConnected)
-			is QuitEvent -> _state.postValue(
-				StreamStateQuit(
-					event.reason,
-					event.reasonString
-				)
-			)
+			is QuitEvent ->
+				if(inUseRetry.shouldRetry(event.reason.value))
+					retryAfterInUse(session)
+				else
+					_state.postValue(
+						StreamStateQuit(
+							event.reason,
+							event.reasonString
+						)
+					)
 			is LoginPinRequestEvent -> _state.postValue(
 				StreamStateLoginPinRequest(
 					event.pinIncorrect
@@ -136,6 +155,19 @@ class StreamSession(
 			is TriggerIntensityEvent -> router?.onTriggerIntensity(event.intensity)
 			is HapticStrengthEvent -> hapticsRumble?.push(event.left, event.right)
 		}
+	}
+
+	/** The console still holds our previous session, start again once it let go, still showing as connecting. */
+	private fun retryAfterInUse(quitSession: Session)
+	{
+		mainHandler.postDelayed({
+			// stopped or replaced meanwhile
+			if(session === quitSession)
+			{
+				disposeSession()
+				resume()
+			}
+		}, IN_USE_RETRY_DELAY_MS)
 	}
 
 	fun attachToSurfaceView(surfaceView: SurfaceView)
