@@ -25,11 +25,13 @@ android {
     ndkVersion "28.2.13676358"
 
     defaultConfig {
-        applicationId "com.metallic.chiaki"
+        // fork build: own package and signing key, installs next to upstream builds and the original Chiaki
+        applicationId "io.github.aoleg94.chiaki"
         minSdk 24
         targetSdk 35
-        versionCode 12
-        versionName chiakiVersion
+        // release CI passes these, derived from the release tag
+        versionCode((project.findProperty("chiakiVersionCode") ?: "12").toInteger())
+        versionName(project.findProperty("chiakiVersionName") ?: chiakiVersion)
         externalNativeBuild {
             cmake {
                 arguments "-DCHIAKI_ENABLE_TESTS=OFF",

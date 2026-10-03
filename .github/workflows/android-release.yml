@@ -1,0 +1,107 @@
+name: Android fork release
+
+# Fork-only: builds a signed APK of this branch and publishes it as a GitHub release.
+# Tag as android-<major>.<minor>.<patch>-ds.<n>, e.g. android-1.10.0-ds.1
+# (not v*.*.*, which starts the upstream desktop release workflow).
+# Secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+
+on:
+  push:
+    tags: [ 'android-*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          pip install protobuf grpcio-tools
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358" "cmake;3.22.1" "build-tools;35.0.0" > /dev/null
+
+      - name: Version from tag
+        id: version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == tag && "$GITHUB_REF_NAME" =~ ^android-([0-9]+)\.([0-9]+)\.([0-9]+)-ds\.([0-9]+)$ ]]; then
+            m=${BASH_REMATCH[1]} n=${BASH_REMATCH[2]} p=${BASH_REMATCH[3]} d=${BASH_REMATCH[4]}
+            echo "name=$m.$n.$p-ds.$d" >> "$GITHUB_OUTPUT"
+            echo "code=$(( m * 1000000 + n * 10000 + p * 100 + d ))" >> "$GITHUB_OUTPUT"
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$GITHUB_REF_TYPE" == tag ]]; then
+            echo "Tag must look like android-1.10.0-ds.1" >&2
+            exit 1
+          else
+            # manual run: test build only, no release
+            echo "name=0.0.0-ci.$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "code=1" >> "$GITHUB_OUTPUT"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          {
+            echo "chiakiKeystore=$RUNNER_TEMP/release.jks"
+            echo "chiakiKeystorePW=$KEYSTORE_PASSWORD"
+            echo "chiakiKeyAlias=$KEY_ALIAS"
+            echo "chiakiKeyPW=$KEY_PASSWORD"
+          } > android/local.properties
+
+      - name: Build
+        working-directory: android
+        run: ./gradlew --no-daemon assembleRelease -PchiakiVersionName=${{ steps.version.outputs.name }} -PchiakiVersionCode=${{ steps.version.outputs.code }}
+
+      - name: Collect APK
+        id: apk
+        run: |
+          apk="chiaki-ng-android-${{ steps.version.outputs.name }}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$apk"
+          sha256sum "$apk" > "$apk.sha256"
+          cert=$("$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs "$apk" | sed -n 's/.*certificate SHA-256 digest: //p' | head -1)
+          echo "file=$apk" >> "$GITHUB_OUTPUT"
+          echo "cert=$cert" >> "$GITHUB_OUTPUT"
+          rm -f "$RUNNER_TEMP/release.jks" android/local.properties
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.file }}
+          path: |
+            ${{ steps.apk.outputs.file }}
+            ${{ steps.apk.outputs.file }}.sha256
+
+      - name: Publish release
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<EOF
+          Unofficial Android build of [chiaki-ng](https://github.com/streetpea/chiaki-ng) from the fork [${GITHUB_REPOSITORY}](https://github.com/${GITHUB_REPOSITORY}), with changes proposed upstream: controller motion, DualSense rumble/haptics/lights, experimental adaptive triggers, and Android input and lifecycle fixes.
+
+          - Package \`io.github.aoleg94.chiaki\`, installs next to other Chiaki builds. To move consoles over, export settings in the old app and import them here.
+          - Source: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/tree/${GITHUB_SHA} (AGPL-3.0)
+          - Signing certificate SHA-256: \`${{ steps.apk.outputs.cert }}\`
+          EOF
+          gh release create "$GITHUB_REF_NAME" \
+            "${{ steps.apk.outputs.file }}" "${{ steps.apk.outputs.file }}.sha256" \
+            --title "chiaki-ng Android ${{ steps.version.outputs.name }}" --notes-file notes.md --prerelease
